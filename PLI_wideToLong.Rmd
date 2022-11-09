@@ -1,0 +1,60 @@
+---
+title: "wide to long"
+author: "Michelle DePrenger-Levin"
+date: "2022-11-02"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+#read in the csv to the oblject LPI (put full path to csv in parentheses)
+LPI <- read.csv("C:/Users/richard.levy/.ssh/R_pli_arc/2022_CommonGrounds_PointLineIntercept.csv")
+```
+
+to long with columns: 
+locationID
+eventDate
+recordedby
+groundSurface
+firstHit
+secondHits
+
+
+```{r}
+head(LPI)
+
+LPI_first <- LPI %>%
+  select(c(locationID:recordedby, starts_with("firstHit"))) %>%
+  pivot_longer(starts_with("firstHit"), names_to = "Hit", values_to = "Species") %>%
+  separate(Hit, sep = "_", c("Hit","Transect","Point")) %>%
+  unite(Point, Transect:Point, sep = ".", na.rm = TRUE) %>%
+  mutate(Point = as.numeric(Point))
+
+LPI_seconds <- LPI %>%
+  select(c(locationID:recordedby, starts_with("secondHits"))) %>%
+  pivot_longer(starts_with("secondHits"), names_to = "Hit", values_to = "Species") %>%
+  separate(Hit, sep = "_", c("Hit","Transect","Point")) %>%
+  unite(Point, Transect:Point, sep = ".", na.rm = TRUE) %>%
+  mutate(Point = as.numeric(Point))
+  
+LPI_ground <- LPI %>%
+  select(c(locationID:recordedby, starts_with("groundSurface"))) %>%
+  pivot_longer(starts_with("groundSurface"), names_to = "Hit", values_to = "Species") %>%
+  separate(Hit, sep = "_", c("Hit","Transect","Point")) %>%
+  unite(Point, Transect:Point, sep = ".", na.rm = TRUE) %>%
+  mutate(Point = as.numeric(Point))
+
+
+LPI_long <- LPI_first %>%
+  bind_rows(LPI_seconds) %>%
+  bind_rows(LPI_ground)
+
+head(data.frame(LPI_long))
+
+#write the output csv
+write.csv(LPI_long, file = "C:/Users/richard.levy/.ssh/R_pli_arc/2022_CommonGrounds_PointLineIntercept_long.csv")
+
+```
+
